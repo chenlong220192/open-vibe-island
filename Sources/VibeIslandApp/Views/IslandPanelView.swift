@@ -11,7 +11,7 @@ struct IslandPanelView: View {
                     .font(.caption2.weight(.bold))
                     .foregroundStyle(.secondary)
                 Spacer()
-                Text("\(model.surfacedSessions.count) shown · \(model.state.attentionCount) attention")
+                Text("\(model.surfacedSessions.count) live · \(model.state.attentionCount) attention")
                     .font(.caption.weight(.medium))
                     .foregroundStyle(.secondary)
             }
@@ -20,25 +20,28 @@ struct IslandPanelView: View {
                 Text("Waiting for Codex sessions.")
                     .foregroundStyle(.secondary)
             } else {
-                VStack(alignment: .leading, spacing: 10) {
-                    ForEach(model.surfacedSessions) { session in
-                        IslandSessionRow(
-                            session: session,
-                            isSelected: session.id == model.focusedSession?.id,
-                            onSelect: { model.select(sessionID: session.id) },
-                            onJump: { model.jumpToSession(session) },
-                            onApprove: { approved in
-                                model.approvePermission(for: session.id, approved: approved)
-                            },
-                            onAnswer: { answer in
-                                model.answerQuestion(for: session.id, answer: answer)
-                            }
-                        )
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 10) {
+                        ForEach(model.surfacedSessions) { session in
+                            IslandSessionRow(
+                                session: session,
+                                isSelected: session.id == model.focusedSession?.id,
+                                onSelect: { model.select(sessionID: session.id) },
+                                onJump: { model.jumpToSession(session) },
+                                onApprove: { approved in
+                                    model.approvePermission(for: session.id, approved: approved)
+                                },
+                                onAnswer: { answer in
+                                    model.answerQuestion(for: session.id, answer: answer)
+                                }
+                            )
+                        }
                     }
                 }
+                .scrollIndicators(.visible)
 
-                if model.hiddenSessionCount > 0 {
-                    Text("+\(model.hiddenSessionCount) recent session(s) are hidden from the island. Open Control Center to inspect them.")
+                if model.recentSessionCount > 0 {
+                    Text("\(model.recentSessionCount) older session(s) moved to history. Open Control Center to inspect them.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }

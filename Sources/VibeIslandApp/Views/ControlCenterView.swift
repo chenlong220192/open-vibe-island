@@ -49,8 +49,8 @@ struct ControlCenterView: View {
                         Text("Live Sessions")
                             .font(.headline)
                         Spacer()
-                        if model.hiddenSessionCount > 0 {
-                            Text("\(model.hiddenSessionCount) recent hidden")
+                        if model.recentSessionCount > 0 {
+                            Text("\(model.recentSessionCount) in history")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }

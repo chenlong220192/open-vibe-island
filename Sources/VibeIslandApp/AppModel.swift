@@ -7,8 +7,7 @@ import VibeIslandCore
 @Observable
 final class AppModel {
     private static let overlayDisplayPreferenceDefaultsKey = "overlay.display.preference"
-    private static let surfacedSessionLimit = 4
-    private static let recentSessionFallbackWindow: TimeInterval = 15 * 60
+    private static let liveSessionStalenessWindow: TimeInterval = 15 * 60
 
     struct AcceptanceStep: Identifiable {
         let id: String
@@ -97,7 +96,7 @@ final class AppModel {
         sessionBuckets.overflow
     }
 
-    var hiddenSessionCount: Int {
+    var recentSessionCount: Int {
         recentSessions.count
     }
 
@@ -652,14 +651,13 @@ final class AppModel {
             return lhsScore > rhsScore
         }
 
-        let surfaced = rankedSessions.filter { shouldSurface($0, now: now) }
-        let primary = Array(surfaced.prefix(Self.surfacedSessionLimit))
+        let primary = rankedSessions.filter { isLiveSession($0, now: now) }
         let primaryIDs = Set(primary.map(\.id))
         let overflow = rankedSessions.filter { !primaryIDs.contains($0.id) }
         return (primary, overflow)
     }
 
-    private func shouldSurface(_ session: AgentSession, now: Date) -> Bool {
+    private func isLiveSession(_ session: AgentSession, now: Date) -> Bool {
         if session.phase.requiresAttention {
             return true
         }
@@ -672,7 +670,11 @@ final class AppModel {
             return true
         }
 
-        return session.updatedAt >= now.addingTimeInterval(-Self.recentSessionFallbackWindow)
+        if session.phase == .running {
+            return session.updatedAt >= now.addingTimeInterval(-Self.liveSessionStalenessWindow)
+        }
+
+        return false
     }
 
     private func displayPriority(for session: AgentSession, now: Date) -> Int {
