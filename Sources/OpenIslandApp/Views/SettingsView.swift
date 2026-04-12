@@ -103,7 +103,7 @@ struct SettingsView: View {
         }
         .frame(minWidth: 680, minHeight: 480)
         .frame(width: 780, height: 560)
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(model.preferredColorScheme.swiftUIScheme)
     }
 
     // MARK: Sidebar
