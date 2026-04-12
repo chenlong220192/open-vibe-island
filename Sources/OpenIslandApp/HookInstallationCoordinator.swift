@@ -18,6 +18,20 @@ final class HookInstallationCoordinator {
     var claudeUsageSnapshot: ClaudeUsageSnapshot?
     var codexUsageSnapshot: CodexUsageSnapshot?
     var hooksBinaryURL: URL?
+
+    // MARK: - Tool detection (set once at init, never changes during session)
+
+    var isClaudeCodeDetected: Bool = false
+    var isCodexDetected: Bool = false
+    var isCursorDetected: Bool = false
+    var isOpenCodeDetected: Bool = false
+    var isQoderDetected: Bool = false
+    var isQwenCodeDetected: Bool = false
+    var isFactoryDetected: Bool = false
+    var isCodebuddyDetected: Bool = false
+
+    @ObservationIgnored
+    private let fileManager = FileManager.default
     var isCodexSetupBusy = false
     var isClaudeHookSetupBusy = false
     var isQoderHookSetupBusy = false
@@ -89,6 +103,30 @@ final class HookInstallationCoordinator {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .short
         return formatter
+    }
+
+    // MARK: - Tool detection
+
+    /// Detects which agent tools are present on this machine and sets the isXxxDetected properties.
+    /// Safe to call multiple times; subsequent calls overwrite with current state.
+    func detectInstalledTools() {
+        let home = fileManager.homeDirectoryForCurrentUser
+
+        isClaudeCodeDetected = fileManager.fileExists(atPath: ClaudeConfigDirectory.resolved().path)
+
+        isCodexDetected = fileManager.fileExists(atPath: home.appendingPathComponent(".codex", isDirectory: true).path)
+
+        isCursorDetected = fileManager.fileExists(atPath: home.appendingPathComponent(".cursor", isDirectory: true).path)
+
+        isOpenCodeDetected = fileManager.fileExists(atPath: home.appendingPathComponent(".config/opencode", isDirectory: true).path)
+
+        isQoderDetected = fileManager.fileExists(atPath: home.appendingPathComponent(".qoder", isDirectory: true).path)
+
+        isQwenCodeDetected = fileManager.fileExists(atPath: home.appendingPathComponent(".qwen", isDirectory: true).path)
+
+        isFactoryDetected = fileManager.fileExists(atPath: home.appendingPathComponent(".factory", isDirectory: true).path)
+
+        isCodebuddyDetected = fileManager.fileExists(atPath: home.appendingPathComponent(".codebuddy", isDirectory: true).path)
     }
 
     // MARK: - Computed display properties
