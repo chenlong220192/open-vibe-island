@@ -89,6 +89,14 @@ final class AppModel {
     var isCodebuddyHookSetupBusy: Bool { hooks.isCodebuddyHookSetupBusy }
     var openCodePluginInstalled: Bool { hooks.openCodePluginInstalled }
     var claudeUsageInstalled: Bool { hooks.claudeUsageInstalled }
+    var isClaudeCodeDetected: Bool { hooks.isClaudeCodeDetected }
+    var isCodexDetected: Bool { hooks.isCodexDetected }
+    var isCursorDetected: Bool { hooks.isCursorDetected }
+    var isOpenCodeDetected: Bool { hooks.isOpenCodeDetected }
+    var isQoderDetected: Bool { hooks.isQoderDetected }
+    var isQwenCodeDetected: Bool { hooks.isQwenCodeDetected }
+    var isFactoryDetected: Bool { hooks.isFactoryDetected }
+    var isCodebuddyDetected: Bool { hooks.isCodebuddyDetected }
     var claudeHookStatusTitle: String { hooks.claudeHookStatusTitle }
     var claudeHookStatusSummary: String { hooks.claudeHookStatusSummary }
     var claudeUsageStatusTitle: String { hooks.claudeUsageStatusTitle }
@@ -1130,6 +1138,9 @@ final class AppModel {
         hooks.hooksBinaryURL = payload.hooksBinaryURL
         hooks.updateHooksBinaryIfNeeded()
 
+        // Detect which agent tools are present before attempting any installs.
+        self.hooks.detectInstalledTools()
+
         // Auto-install missing hooks and usage bridge, then run health checks.
         if payload.hooksBinaryURL != nil {
             Task { @MainActor [weak self] in
@@ -1138,15 +1149,15 @@ final class AppModel {
                 // Wait for all status reads to complete before checking install state.
                 await self.hooks.refreshAllHookStatusAndWait()
 
-                if !self.claudeHooksInstalled { self.installClaudeHooks() }
-                if !self.codexHooksInstalled { self.installCodexHooks() }
-                if !self.qoderHooksInstalled { self.installQoderHooks() }
-                if !self.qwenCodeHooksInstalled { self.installQwenCodeHooks() }
-                if !self.factoryHooksInstalled { self.installFactoryHooks() }
-                if !self.codebuddyHooksInstalled { self.installCodebuddyHooks() }
-                if !self.openCodePluginInstalled { self.installOpenCodePlugin() }
-                if !self.cursorHooksInstalled { self.installCursorHooks() }
-                if !self.claudeUsageInstalled { self.installClaudeUsageBridge() }
+                if !self.claudeHooksInstalled && self.isClaudeCodeDetected { self.installClaudeHooks() }
+                if !self.codexHooksInstalled && self.isCodexDetected { self.installCodexHooks() }
+                if !self.qoderHooksInstalled && self.isQoderDetected { self.installQoderHooks() }
+                if !self.qwenCodeHooksInstalled && self.isQwenCodeDetected { self.installQwenCodeHooks() }
+                if !self.factoryHooksInstalled && self.isFactoryDetected { self.installFactoryHooks() }
+                if !self.codebuddyHooksInstalled && self.isCodebuddyDetected { self.installCodebuddyHooks() }
+                if !self.openCodePluginInstalled && self.isOpenCodeDetected { self.installOpenCodePlugin() }
+                if !self.cursorHooksInstalled && self.isCursorDetected { self.installCursorHooks() }
+                if !self.claudeUsageInstalled && self.isClaudeCodeDetected { self.installClaudeUsageBridge() }
 
                 // Run health checks after install to detect stale paths, conflicts, etc.
                 try? await Task.sleep(for: .milliseconds(500))

@@ -415,6 +415,7 @@ struct SetupSettingsPane: View {
                 hookRow(
                     name: "Claude Code",
                     installed: model.claudeHooksInstalled,
+                    detected: model.isClaudeCodeDetected,
                     busy: model.isClaudeHookSetupBusy,
                     installAction: { model.installClaudeHooks() },
                     uninstallAction: { confirmingUninstallClaude = true }
@@ -431,6 +432,7 @@ struct SetupSettingsPane: View {
                 hookRow(
                     name: "Codex",
                     installed: model.codexHooksInstalled,
+                    detected: model.isCodexDetected,
                     busy: model.isCodexSetupBusy,
                     installAction: { model.installCodexHooks() },
                     uninstallAction: { confirmingUninstallCodex = true }
@@ -447,6 +449,7 @@ struct SetupSettingsPane: View {
                 hookRow(
                     name: "OpenCode",
                     installed: model.openCodePluginInstalled,
+                    detected: model.isOpenCodeDetected,
                     busy: model.isOpenCodeSetupBusy,
                     requiresBinary: false,
                     installAction: { model.installOpenCodePlugin() },
@@ -464,6 +467,7 @@ struct SetupSettingsPane: View {
                 hookRow(
                     name: "Qoder",
                     installed: model.qoderHooksInstalled,
+                    detected: model.isQoderDetected,
                     busy: model.isQoderHookSetupBusy,
                     installAction: { model.installQoderHooks() },
                     uninstallAction: { confirmingUninstallQoder = true }
@@ -480,6 +484,7 @@ struct SetupSettingsPane: View {
                 hookRow(
                     name: "Qwen Code",
                     installed: model.qwenCodeHooksInstalled,
+                    detected: model.isQwenCodeDetected,
                     busy: model.isQwenCodeHookSetupBusy,
                     installAction: { model.installQwenCodeHooks() },
                     uninstallAction: { confirmingUninstallQwenCode = true }
@@ -496,6 +501,7 @@ struct SetupSettingsPane: View {
                 hookRow(
                     name: "Factory",
                     installed: model.factoryHooksInstalled,
+                    detected: model.isFactoryDetected,
                     busy: model.isFactoryHookSetupBusy,
                     installAction: { model.installFactoryHooks() },
                     uninstallAction: { confirmingUninstallFactory = true }
@@ -512,6 +518,7 @@ struct SetupSettingsPane: View {
                 hookRow(
                     name: "CodeBuddy",
                     installed: model.codebuddyHooksInstalled,
+                    detected: model.isCodebuddyDetected,
                     busy: model.isCodebuddyHookSetupBusy,
                     installAction: { model.installCodebuddyHooks() },
                     uninstallAction: { confirmingUninstallCodebuddy = true }
@@ -528,6 +535,7 @@ struct SetupSettingsPane: View {
                 hookRow(
                     name: "Cursor",
                     installed: model.cursorHooksInstalled,
+                    detected: model.isCursorDetected,
                     busy: model.isCursorHookSetupBusy,
                     requiresBinary: true,
                     installAction: { model.installCursorHooks() },
@@ -592,15 +600,15 @@ struct SetupSettingsPane: View {
 
             Section {
                 Button(lang.t("setup.installAll")) {
-                    if !model.claudeHooksInstalled { model.installClaudeHooks() }
-                    if !model.codexHooksInstalled { model.installCodexHooks() }
-                    if !model.openCodePluginInstalled { model.installOpenCodePlugin() }
-                    if !model.qoderHooksInstalled { model.installQoderHooks() }
-                    if !model.qwenCodeHooksInstalled { model.installQwenCodeHooks() }
-                    if !model.factoryHooksInstalled { model.installFactoryHooks() }
-                    if !model.codebuddyHooksInstalled { model.installCodebuddyHooks() }
-                    if !model.cursorHooksInstalled { model.installCursorHooks() }
-                    if !model.claudeUsageInstalled { model.installClaudeUsageBridge() }
+                    if !model.claudeHooksInstalled && model.isClaudeCodeDetected { model.installClaudeHooks() }
+                    if !model.codexHooksInstalled && model.isCodexDetected { model.installCodexHooks() }
+                    if !model.openCodePluginInstalled && model.isOpenCodeDetected { model.installOpenCodePlugin() }
+                    if !model.qoderHooksInstalled && model.isQoderDetected { model.installQoderHooks() }
+                    if !model.qwenCodeHooksInstalled && model.isQwenCodeDetected { model.installQwenCodeHooks() }
+                    if !model.factoryHooksInstalled && model.isFactoryDetected { model.installFactoryHooks() }
+                    if !model.codebuddyHooksInstalled && model.isCodebuddyDetected { model.installCodebuddyHooks() }
+                    if !model.cursorHooksInstalled && model.isCursorDetected { model.installCursorHooks() }
+                    if !model.claudeUsageInstalled && model.isClaudeCodeDetected { model.installClaudeUsageBridge() }
                 }
                 .disabled(model.hooksBinaryURL == nil || allReady)
                 .frame(maxWidth: .infinity, alignment: .center)
@@ -658,9 +666,16 @@ struct SetupSettingsPane: View {
     }
 
     private var allReady: Bool {
-        model.claudeHooksInstalled && model.codexHooksInstalled && model.openCodePluginInstalled
-            && model.qoderHooksInstalled && model.qwenCodeHooksInstalled && model.factoryHooksInstalled && model.codebuddyHooksInstalled
-            && model.cursorHooksInstalled && model.claudeUsageInstalled
+        // All tools that are detected have their hooks installed.
+        (!model.isClaudeCodeDetected || model.claudeHooksInstalled)
+            && (!model.isCodexDetected || model.codexHooksInstalled)
+            && (!model.isOpenCodeDetected || model.openCodePluginInstalled)
+            && (!model.isQoderDetected || model.qoderHooksInstalled)
+            && (!model.isQwenCodeDetected || model.qwenCodeHooksInstalled)
+            && (!model.isFactoryDetected || model.factoryHooksInstalled)
+            && (!model.isCodebuddyDetected || model.codebuddyHooksInstalled)
+            && (!model.isCursorDetected || model.cursorHooksInstalled)
+            && (!model.isClaudeCodeDetected || model.claudeUsageInstalled)
     }
 
     private var hasErrors: Bool {
@@ -785,6 +800,7 @@ struct SetupSettingsPane: View {
     private func hookRow(
         name: String,
         installed: Bool,
+        detected: Bool,
         busy: Bool,
         requiresBinary: Bool = true,
         installAction: @escaping () -> Void,
@@ -809,6 +825,10 @@ struct SetupSettingsPane: View {
                 }
             } else if busy {
                 ProgressView().controlSize(.small)
+            } else if !detected {
+                Text("Not detected")
+                    .foregroundStyle(.tertiary)
+                    .font(.caption)
             } else {
                 Button(lang.t("settings.general.install")) {
                     installAction()
