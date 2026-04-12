@@ -64,6 +64,13 @@ if [ -d "$sparkle_framework" ]; then
     command cp -R "$sparkle_framework" "$bundle_dir/Contents/Frameworks/"
 fi
 
+# Determine version from VERSION file, falling back to a dev placeholder.
+version=$(cat "$repo_root/VERSION" 2>/dev/null | tr -d ' \n') || true
+if [ -z "$version" ]; then
+    version="0.1.0-dev"
+fi
+build_number=$(git rev-list --count HEAD 2>/dev/null || echo 1)
+
 cat > "$plist_path" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -84,9 +91,9 @@ cat > "$plist_path" <<EOF
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>0.1</string>
+    <string>$version</string>
     <key>CFBundleVersion</key>
-    <string>1</string>
+    <string>$build_number</string>
     <key>LSMinimumSystemVersion</key>
     <string>14.0</string>
     <key>NSAppleEventsUsageDescription</key>
